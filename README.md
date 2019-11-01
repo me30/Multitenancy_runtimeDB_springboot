@@ -21,30 +21,42 @@ There are several models to achieve multitenancy in an application:
 
 Every model is a trade-off between isolation and resource sharing.
 
-# This Application is use to create runtime database and register new tenant runtime
+# This Application is used to create database and register new tenant runtime
 
-**create database runtime and register tenantID**
+**create database and register tenantID runtime **
+
 ```
 curl -X POST \
   http://localhost:8080/tenant/create \
   -H 'cache-control: no-cache' \
   -H 'content-type: application/json' \
-  -H 'postman-token: 40c087a8-8537-2fa0-3082-5cd0ffaf8a19' \
   -d '{
 	"dbname":"sampledb1",
 	"tenantID":"TenantOne"
 }'
 ```
-**TenantOne Testing :**
+
 ```
-  curl -X POST \
+curl -X POST \
+  http://localhost:8080/tenant/create \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -d '{
+	"dbname":"sampledb2",
+	"tenantID":"TenantTwo"
+}'
+```
+**TenantOne Testing :**
+
+```
+curl -X POST \
   http://localhost:8080/employees/create \
   -H 'cache-control: no-cache' \
   -H 'content-type: application/json' \
   -H 'x-tenantid: TenantOne' \
   -d '{
 
-	"name":"Emp1",
+	"name":"Emp1 tenta two",
 	"password":"12345",
 	"descr":"Tet description",
 	"gross_salary_month":2000,
@@ -56,5 +68,5 @@ curl -X POST \
 	"limit_hours_month":3,
 	"ref_id":2,
 	"valid":0
-  }'
+}'
 ```
