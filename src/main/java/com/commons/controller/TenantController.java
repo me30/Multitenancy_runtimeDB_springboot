@@ -5,9 +5,11 @@ import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -41,20 +43,58 @@ public class TenantController {
 	@Value("${db.driverclass}")
 	private String driverclass;
 
+	@Value("${app.db}")
+	private String appdb;
+	
 	@PersistenceContext
 	EntityManager entityManager;
 
 	@RequestMapping(value="/create", method=RequestMethod.POST)
 	public ResponseEntity<?> create(@RequestBody TenantModel model) throws Exception{
+
+		//create database..
 		createDatabase(model);
+
+		//create table 
 		executeScriptUsingStatement(model);
-		
+
+		//Register New db with application database.
+		registerNewDb(model);
+
 		TargetDataSources.getTargetDataSources().put(model.getTenantID(), tenantRuntime(model.getDbname()));
 		dataSource.setTargetDataSources(TargetDataSources.getTargetDataSources());
 		dataSource.afterPropertiesSet(); 
 
 		return new ResponseEntity<String>("OK", HttpStatus.CREATED);
 	} 
+
+	private void registerNewDb(TenantModel model) throws Exception {
+		BufferedReader reader = null;
+		Connection con = null;
+		Statement stmt = null;
+		try {
+			// load driver class for mysql
+			Class.forName(driverclass);
+			// create connection
+			con = DriverManager.getConnection(appdb, username, password);
+			// create statement object
+			stmt = con.createStatement();
+			String sql = "INSERT INTO applicationdb (tenant_id,database_name) VALUES (\'"+model.getTenantID()+"\', \'"+model.getDbname()+"\')";
+			stmt.executeUpdate(sql);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// close file reader
+			if (reader != null) {
+				reader.close();
+			}
+			// close db connection
+			if (con != null) {
+				con.close();
+			}
+		}
+
+	}
 
 	private void createDatabase(TenantModel model) throws Exception {
 		Class.forName(driverclass);
@@ -111,5 +151,5 @@ public class TenantController {
 		dataSource.addDataSourceProperty("password", password);
 		return dataSource;
 	}
-	
+
 }

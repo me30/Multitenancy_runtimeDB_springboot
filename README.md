@@ -23,6 +23,27 @@ Every model is a trade-off between isolation and resource sharing.
 
 # This Application is used to create database and register new tenant runtime
 
+# There are centeral db which use to save runtime created database name and tenant. Purpose is , If server restart then older databsae and tenant id register .
+
+```
+CREATE database appdb;
+
+CREATE TABLE "applicationdb" ("id" SERIAL NOT NULL, "tenant_id" CHARACTER VARYING(100), "database_name" CHARACTER VARYING(100), PRIMARY KEY ("id"));
+
+
+```
+
+# application.properties - used to make some db related configration.
+
+db.username=postgres
+db.password=postgres123
+db.driverclass=org.postgresql.ds.PGSimpleDataSource
+db.url.Tenant=jdbc:postgresql://127.0.0.1:5432/
+
+app.db=jdbc:postgresql://127.0.0.1:5432/appdb
+
+
+
 **create database and register tenantID runtime **
 
 ```
